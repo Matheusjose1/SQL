@@ -487,6 +487,7 @@ COMMIT;
 --
 -- Procedimentos
 --
+DELIMITER $$
 DROP PROCEDURE IF EXISTS `AtualizarEstoque`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `AtualizarEstoque` (IN `p_ID_Estoque` INT, IN `p_Quantidade` INT)   BEGIN
     DECLARE Estoque_Atual INT;  -- Declara a variável para armazenar a quantidade atual do estoque

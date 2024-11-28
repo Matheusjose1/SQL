@@ -483,3 +483,67 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
+--
+-- Procedimentos
+--
+DROP PROCEDURE IF EXISTS `AtualizarEstoque`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `AtualizarEstoque` (IN `p_ID_Estoque` INT, IN `p_Quantidade` INT)   BEGIN
+    DECLARE Estoque_Atual INT;  -- Declara a variável para armazenar a quantidade atual do estoque
+
+    -- Obtém a quantidade atual do estoque
+    SELECT Quantidade
+    INTO Estoque_Atual
+    FROM estoque
+    WHERE ID_Estoque = p_ID_Estoque;
+
+    -- Verifica se o estoque é suficiente
+    IF Estoque_Atual < p_Quantidade THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Estoque insuficiente para o procedimento';  -- Caso o estoque seja insuficiente
+    ELSE 
+        -- Atualiza o estoque subtraindo a quantidade fornecida
+        UPDATE estoque
+        SET Quantidade = Estoque_Atual - p_Quantidade  -- Subtrai a quantidade do estoque atual
+        WHERE ID_Estoque = p_ID_Estoque;  -- Atualiza o estoque correto
+    END IF;
+END$$
+
+DROP PROCEDURE IF EXISTS `MostraEstoque`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `MostraEstoque` (IN `ID_Estoque` INT)   BEGIN
+    SELECT 
+        estoque.Nome,
+        estoque.Quantidade,
+        m.Descrição
+    FROM estoque
+    INNER JOIN medicamentos_estoque m ON estoque.ID_Estoque = m.ID_Medicamento
+    WHERE m.ID_Medicamento = ID_Estoque
+    ORDER BY m.Nome;
+END$$
+
+DROP PROCEDURE IF EXISTS `MostraMédicos`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `MostraMédicos` ()   BEGIN
+	select médico.nome, médico.especialidade, médico.disponibilidade, médico.estado
+	from médico
+	order by médico.estado;
+END$$
+
+DROP PROCEDURE IF EXISTS `MostraPacientes`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `MostraPacientes` ()   BEGIN
+	SELECT 
+    pacientes.Nome, 
+    pacientes.ID_Paciente,
+    h.Histórico_Doença,
+    h.Ultimo_Exame,
+    h.Prescrições,
+    h.Observações,
+    h.Resultados
+FROM pacientes
+LEFT JOIN histórico_médico_paciente AS h 
+    ON h.ID_Histórico = pacientes.ID_Paciente
+ORDER BY pacientes.Nome;
+END$$
+
+DELIMITER ;
+
+-- --------------------------------------------------------
